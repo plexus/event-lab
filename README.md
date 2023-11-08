@@ -32,3 +32,9 @@ just psql <database>      # SQL REPL
 just kafka-ls             # list consumer groups
 just kafka-desc <group>   # describe consumer group
 ```
+
+# LICENSE
+
+&copy; Copyright 2023 Arne Brasseur
+
+Distributed under the terms of the MIT license, see the `LICENSE` file.
