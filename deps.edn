@@ -1,10 +1,20 @@
 {:deps
- {org.clojure/clojure {:mvn/version "1.12.0-alpha5"}
-  com.github.seancorfield/next.jdbc {:mvn/version "1.3.894"}
-  com.github.seancorfield/honeysql {:mvn/version "2.4.1078"}
-  org.apache.kafka/connect-api {:mvn/version "3.6.0"}
-
+ {org.clojure/clojure            {:mvn/version "1.12.0-alpha5"}
+  com.cnuernber/charred          {:mvn/version "1.033"}
+  ;; Kafka
+  org.apache.kafka/connect-api   {:mvn/version "3.6.0"}
   org.apache.kafka/kafka-clients {:mvn/version "3.6.0"}
 
+  ;; PostgreSQL
+  com.github.seancorfield/next.jdbc {:mvn/version "1.3.894"}
+  com.github.seancorfield/honeysql  {:mvn/version "2.5.1091"}
+  org.postgresql/postgresql {:mvn/version "42.4.0"}      ; "classic" pg jdbc driver
+  com.impossibl.pgjdbc-ng/pgjdbc-ng {:mvn/version "0.8.9"}  ; new generation driver
+
+  ;; xtdb
+  com.xtdb/xtdb-core    {:mvn/version "1.24.1"}
+  com.xtdb/xtdb-rocksdb {:mvn/version "1.24.1"}
+  com.xtdb/xtdb-kafka   {:mvn/version "1.24.1"}
+  com.xtdb/xtdb-jdbc    {:mvn/version "1.24.1"}
 
   }}

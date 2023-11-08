@@ -7,57 +7,103 @@
    (org.apache.kafka.clients.consumer ConsumerRecord KafkaConsumer)
    (org.apache.kafka.clients.producer KafkaProducer ProducerRecord)))
 
-;; docker run -it --name kafka-zkless -p 9092:9092 -e LOG_DIR=/tmp/logs quay.io/strimzi/kafka:latest-kafka-3.6.0-amd64 /bin/sh -c 'export CLUSTER_ID=$(bin/kafka-storage.sh random-uuid) && bin/kafka-storage.sh format -t $CLUSTER_ID -c config/kraft/server.properties && bin/kafka-server-start.sh config/kraft/server.properties'
+;; Run kafka inside docker:
+;; $ just kafka
 
-;; docker exec $CONTAINER bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
-;; docker exec $CONTAINER bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group test --describe
+;; List consumer groups:
+;; $ just kafka-ls
 
+;; Describe group:
+;; $ just kafka-desc test
+
+;; Kafka tl;dr:
+
+;; Kafka broker arranges transactions between producers and consumers
+;; Kafka cluster = collection of one or more brokers (three or more for replication)
+;; Kafka Topic = persisted immutable stream of event (event stream at rest)
+;; Consumer Group = consumers that work together to process a topic in parallel (doing same "logical job")
+;; Each topic is stored in one or more *Partitions* (comparable to shards)
+;; - Part of the persistent log for a topic that is stored on a broker
+;; - Can be replicated across brokers
+;;   - Configurable topic replication factor
+;;   - For each partition a leader is elected (rest = followers)
+;; - Configurable how many partitions a topic has, min=1
+;; - number of partitions in the topic determines the maximum number of consumers in a single group that consumes that partition
+;;   - #partitions <= #consumer-group
+;;   - Partition can not be processed by more than one consumer in a given group
+;;   - But many groups can consume a topic (and thus partition)
+;; - Order is only guaranteed within a partition
+;; - Which events goes to which partition controllable by "event-key"
+;; Kafka maintains offset per [partition, consumer-group] pair
+;; - last successfully processed message
+;; - allows picking up work later
+;; - stored in internal topic __consumer_offsets-<partition-id>
 
 (extend-protocol clojure-proto/Datafiable
   ConsumerRecord
   (datafy [r]
-    {;;:serializedValueSize (.serializedValueSize r)
-     :partition (.partition r)
-     :offset (.offset r)
-     :timestamp (.timestamp r)
-     ;;:timestampType (.timestampType r)
-     :key (.key r)
-     :value (.value r)
-     :headers (.headers r)
-     :leaderEpoch (.leaderEpoch r)
+    {
+     ;; (String) The topic this record is received from (never null)
      :topic (.topic r)
+     ;; (int) The partition of the topic this record is received from.
+     ;; Incrementing integer, unique within the cluster (not just within the
+     ;; topic)
+     :partition (.partition r)
+     ;; (long) The offset of this record in the corresponding Kafka partition. Incrementing integer.
+     :offset (.offset r)
+     ;; (long) The timestamp of this record, in milliseconds elapsed since unix epoch.
+     :timestamp (.timestamp r)
+     ;; The key of the record, if one exists (null is allowed)
+     :key (.key r)
+     ;; The record contents (blob)
+     :value (.value r)
+     ;; The headers of the record - similar to HTTP headers, can contain things
+     ;; like span/trace ids. Any "metadata" that is useful for routing messages.
+     :headers (.headers r)
+     ;; Optional leader epoch of the record (may be empty for legacy record formats)
+     ;; Incremented by the controller each time it elects a replica to be the new leader
+     ;; :leaderEpoch (.leaderEpoch r)
+
+     ;; (Enum) The timestamp type - NO_TIMESTAMP_TIME / CREATE_TIME / LOG_APPEND_TIME
+     ;;:timestampType (.timestampType r)
+
+     ;; The length of the serialized uncompressed key in bytes
+     ;;:serializedValueSize (.serializedValueSize r)
+
+     ;; The length of the serialized uncompressed value in bytes
      ;;:serializedKeySize (.serializedKeySize r)
      }))
 
 (def props
-   {"bootstrap.servers" "localhost:9092"
-    "group.id" "test"
-    "default.topic" "magic-topic"
-    "enable.auto.commit" "true"
-    "max.poll.records" "10"
-    "auto.commit.interval.ms" "1000"
-    "key.serializer" "org.apache.kafka.common.serialization.StringSerializer"
-    "value.serializer" "org.apache.kafka.common.serialization.StringSerializer"
-    "key.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"
-    "value.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"})
+  {"bootstrap.servers" "localhost:9092"
+   ;; consumer group
+   "group.id" "test"
+   "default.topic" "magic-topic"
+   "max.poll.records" "10"
+   ;; commit consumer offset = last message processed for given partition
+   "enable.auto.commit" "true"
+   "auto.commit.interval.ms" "1000"
+   "key.serializer" "org.apache.kafka.common.serialization.StringSerializer"
+   "value.serializer" "org.apache.kafka.common.serialization.StringSerializer"
+   "key.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"
+   "value.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"})
 
 (def consumer (KafkaConsumer. props))
-(.subscribe consumer ["my-topic" "magic-topic"])
+(.subscribe consumer ["magic-topic"])
+
+(defonce all-records (atom []))
 
 (.start
  (Thread.
   #(while true
      (doseq [record (.poll consumer (Duration/ofMillis 1000))]
-       (print ".")
+       (print ".") (flush)
        (let [r (datafy record)]
          (if (= "stop" (:value r))
-           (throw (Exception.))))
-       (def rrr record)
-       (prn (datafy record)))
-     )))
-
-(seq
-      (.headers rrr))
+           (throw (Exception. "stop requested"))))
+       (swap! all-records conj record)
+       #_
+       (prn (datafy record))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -66,5 +112,6 @@
 (dotimes [i 100]
   (.send producer (ProducerRecord. "magic-topic" (str (random-uuid)) (str i))))
 
+(.send producer (ProducerRecord. "magic-topic" (str (random-uuid)) "stop"))
 
 ;; (.close producer)
