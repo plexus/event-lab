@@ -9,12 +9,18 @@ Start a REPL:
 bin/launchpad --emacs
 ```
 
-Start one or more docker containers:
+Start one or more services:
 
-```clj
-just postgres
-just kafka
-```
+- `just postgres` - Runs PostgreSQL via Docker, with authorization disables (AUTH_METHOD=trust). Use user=postgres, pwd=(blank) (or any password)
+- `just kafka` - Downloads and installs Kafka from release tarball
+- `just kafka-docker` - Runs Kafka via Docker
+- `just kafdrop` - Runs the Kafdrop web admin UI for Kafka (at [localhost:9000](https://localhost:9000))
+
+When running Kafka from release tarball (`just kafka`) it
+
+- downloads and runs from `download/kafka_<scala-version>-<kafka-version>`
+- uses the configuration file at `config/server.properties`
+- stores its data under `data/kafka_logs`
 
 Namespaces:
 
