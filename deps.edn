@@ -1,5 +1,5 @@
 {:deps
- {org.clojure/clojure    {:mvn/version "1.12.0-alpha5"}
+ {org.clojure/clojure    {:mvn/version "1.12.0"}
   com.cnuernber/charred  {:mvn/version "1.033"}
   com.lambdaisland/faker {:mvn/version "0.2.8"}
 
@@ -19,4 +19,6 @@
   com.xtdb/xtdb-kafka   {:mvn/version "1.24.1"}
   com.xtdb/xtdb-jdbc    {:mvn/version "1.24.1"}
 
+  ;; serialization
+  org.apache.avro/avro {:mvn/version "1.11.1"}
   }}
