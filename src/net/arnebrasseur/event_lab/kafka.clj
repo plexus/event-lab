@@ -1,5 +1,6 @@
 (ns net.arnebrasseur.event-lab.kafka
   (:require
+   [charred.api :as charred]
    [clojure.core.protocols :as clojure-proto]
    [clojure.datafy :refer [datafy]])
   (:import
@@ -111,6 +112,13 @@
 
 (dotimes [i 100]
   (.send producer (ProducerRecord. "events" (str (random-uuid)) (str "{\"bar\": " i "}") #_(str i))))
+
+(.send producer (ProducerRecord. "events" (str (random-uuid))
+                                 (charred/write-json-str
+                                  {:table "db_name.table_name"
+                                   :id (rand-int 1000)
+                                   :name "hello"
+                                   :created_at (java.time.Instant/now)})))
 
 (.send producer (ProducerRecord. "magic-topic" (str (random-uuid)) "stop"))
 

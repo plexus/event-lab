@@ -39,6 +39,17 @@ just kafka-ls             # list consumer groups
 just kafka-desc <group>   # describe consumer group
 ```
 
+## Kafka Iceberg Setup
+
+```
+just tmux-panes minio kafka kafka-connect kafka-ui nessie-pg nessie
+```
+
+- [Portainer](https://localhost:9443)
+- [Kafka UI](http://localhost:8080/)
+- [Nessie](http://localhost:19120)
+
+
 # LICENSE
 
 &copy; Copyright 2023 Arne Brasseur

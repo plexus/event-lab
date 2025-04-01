@@ -58,7 +58,6 @@ minio:
 nessie-install:
  #!/bin/bash
  [[ -f "downloads/nessie-quarkus-${NESSIE_VERSION}-runner.jar" ]] || curl -L "https://github.com/projectnessie/nessie/releases/download/nessie-${NESSIE_VERSION}/nessie-quarkus-${NESSIE_VERSION}-runner.jar" -o "downloads/nessie-quarkus-${NESSIE_VERSION}-runner.jar"
- [[ -f "downloads/nessie-cli-${NESSIE_VERSION}.jar" ]] || curl -L "https://github.com/projectnessie/nessie/releases/download/nessie-${NESSIE_VERSION}/nessie-cli-${NESSIE_VERSION}.jar" -o "downloads/nessie-cli-${NESSIE_VERSION}.jar"
 
 nessie:
   just nessie-install
@@ -66,6 +65,11 @@ nessie:
 
 nessie-pg:
   docker run -i -e POSTGRES_PASSWORD=nessie -p 5432:5432 -v ./data/pg-nessie:/var/lib/postgresql/data -v ./nessie/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql postgres:latest
+
+nessie-cli:
+  #!/bin/bash
+  [[ -f "downloads/nessie-cli-${NESSIE_VERSION}.jar" ]] || curl -L "https://github.com/projectnessie/nessie/releases/download/nessie-${NESSIE_VERSION}/nessie-cli-${NESSIE_VERSION}.jar" -o "downloads/nessie-cli-${NESSIE_VERSION}.jar"
+  java -jar "downloads/nessie-cli-${NESSIE_VERSION}.jar"
 
 portainer:
   # 8000(1) - SSH edge agent
@@ -91,3 +95,11 @@ iceberg-delete-sink:
 
 kafka-connect:
   downloads/kafka_${KAFKA_SCALA_VERSION}-${KAFKA_VERSION}/bin/connect-distributed.sh config/kafka_connect_distributed.properties
+
+kafka-ui:
+  #!/bin/bash
+  [[ -f "downloads/kafka-ui-api-v${KAFKA_UI_VERSION}.jar" ]] || curl -L "https://github.com/provectus/kafka-ui/releases/download/v${KAFKA_UI_VERSION}/kafka-ui-api-v${KAFKA_UI_VERSION}.jar" -o "downloads/kafka-ui-api-v${KAFKA_UI_VERSION}.jar"
+  java -Dspring.config.additional-location=config/kafka_ui.yaml -jar "downloads/kafka-ui-api-v${KAFKA_UI_VERSION}.jar"
+
+tmux-panes +TASKS:
+  for t in {{TASKS}}; do tmux new-window -n $t && tmux send-keys "just ${t}" C-m; done

@@ -21,4 +21,10 @@
 
   ;; serialization
   org.apache.avro/avro {:mvn/version "1.11.1"}
-  }}
+
+  ;; iceberg/nessie
+  org.apache.iceberg/iceberg-core   {:mvn/version "1.8.1"}
+  org.apache.iceberg/iceberg-nessie {:mvn/version "1.8.1"}
+  org.apache.iceberg/iceberg-aws    {:mvn/version "1.8.1"}
+  software.amazon.awssdk/s3         {:mvn/version "2.31.12"}
+  software.amazon.awssdk/sts {:mvn/version "RELEASE"}}}
