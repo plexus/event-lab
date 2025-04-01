@@ -47,8 +47,10 @@ kafka-docker-ls:
 kafka-docker-desc group:
   docker exec event-lab-kafka-zkless bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group {{group}} --describe
 
-local-s3:
+# Local S3-compatible storage
+minio:
   # S3_ACCESS_KEY=usr S3_SECRET_KEY=password s4cmd --endpoint-url=http://127.0.0.1:9000 --verbose ls
+  mkdir -p data/s3
   docker run -p 9000:9000 -p 9001:9001 -v ./data/s3:/data \
     -e MINIO_ROOT_USER=usr -e MINIO_ROOT_PASSWORD=password \
     quay.io/minio/minio server /data --console-address ":9001"
@@ -66,7 +68,9 @@ nessie-pg:
   docker run -i -e POSTGRES_PASSWORD=nessie -p 5432:5432 -v ./data/pg-nessie:/var/lib/postgresql/data -v ./nessie/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql postgres:latest
 
 portainer:
-  docker run -p 8888:8000 -p 9443:9443 --restart=always --privileged -v /var/run/docker.sock:/var/run/docker.sock portainer/portainer-ce:2.23.0
+  # 8000(1) - SSH edge agent
+  # 9443 - UI
+  docker run -p 8001:8000 -p 9443:9443 --restart=always --privileged -v /var/run/docker.sock:/var/run/docker.sock portainer/portainer-ce:2.23.0
 
 # Requires java 17 or 21
 iceberg-install:

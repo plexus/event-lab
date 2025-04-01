@@ -78,7 +78,7 @@
   {"bootstrap.servers" "localhost:9092"
    ;; consumer group
    "group.id" "test"
-   "default.topic" "magic-topic"
+   "default.topic" "events"
    "max.poll.records" "10"
    ;; commit consumer offset = last message processed for given partition
    "enable.auto.commit" "true"
@@ -110,7 +110,7 @@
 (def producer (KafkaProducer. props))
 
 (dotimes [i 100]
-  (.send producer (ProducerRecord. "magic-topic" (str (random-uuid)) (str i))))
+  (.send producer (ProducerRecord. "events" (str (random-uuid)) (str "{\"bar\": " i "}") #_(str i))))
 
 (.send producer (ProducerRecord. "magic-topic" (str (random-uuid)) "stop"))
 
