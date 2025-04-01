@@ -47,11 +47,11 @@ just tmux-panes minio kafka kafka-connect kafka-ui nessie-pg nessie
 
 - [Portainer](https://localhost:9443)
 - [Kafka UI](http://localhost:8080/)
+- [Minio](http://localhost:9000/)
 - [Nessie](http://localhost:19120)
-
 
 # LICENSE
 
-&copy; Copyright 2023 Arne Brasseur
+&copy; Copyright 2023-2025 Arne Brasseur
 
 Distributed under the terms of the MIT license, see the `LICENSE` file.

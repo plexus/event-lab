@@ -49,11 +49,25 @@ kafka-docker-desc group:
 
 # Local S3-compatible storage
 minio:
-  # S3_ACCESS_KEY=usr S3_SECRET_KEY=password s4cmd --endpoint-url=http://127.0.0.1:9000 --verbose ls
   mkdir -p data/s3
   docker run -p 9000:9000 -p 9001:9001 -v ./data/s3:/data \
+    -e MINIO_DOMAIN=minio-s3 \
+    -e MINIO_REGION=us-east-1 \
     -e MINIO_ROOT_USER=usr -e MINIO_ROOT_PASSWORD=password \
     quay.io/minio/minio server /data --console-address ":9001"
+
+minio-init:
+  just minio-cli config host add minios3 http://localhost:9000 usr password
+  just minio-cli mb minios3/warehouse
+
+minio-cli *ARGS:
+  #!/bin/bash
+  [[ -f "downloads/mc" ]] || curl https://dl.min.io/client/mc/release/linux-amd64/mc --create-dirs -o downloads/mc
+  chmod +x downloads/mc
+  downloads/mc {{ARGS}}
+
+minios-s4cmd *ARGS:
+  S3_ACCESS_KEY=usr S3_SECRET_KEY=password s4cmd --endpoint-url=http://127.0.0.1:9000 --verbose {{ARGS}}
 
 nessie-install:
  #!/bin/bash
