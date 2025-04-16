@@ -117,3 +117,14 @@ kafka-ui:
 
 tmux-panes +TASKS:
   for t in {{TASKS}}; do tmux new-window -n $t && tmux send-keys "just ${t}" C-m; done
+
+trino:
+  #!/bin/bash
+  [[ -d "downloads/trino-server-${TRINO_VERSION}" ]] || curl -L "https://repo1.maven.org/maven2/io/trino/trino-server/${TRINO_VERSION}/trino-server-${TRINO_VERSION}.tar.gz" | tar xvz -C downloads
+  mkdir -p data/trino data/trino_tmp
+  downloads/trino-server-474/bin/launcher -data-dir data/trino -etc-dir config/trino run
+
+trino-cli:
+  #!/bin/bash
+  [[ -f "downloads/trino-cli-${TRINO_VERSION}-executable.jar" ]] || curl -L "https://repo1.maven.org/maven2/io/trino/trino-cli/${TRINO_VERSION}/trino-cli-${TRINO_VERSION}-executable.jar" -o "downloads/trino-cli-${TRINO_VERSION}-executable.jar"
+  java -jar "downloads/trino-cli-${TRINO_VERSION}-executable.jar" http://localhost:9999

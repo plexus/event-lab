@@ -13,6 +13,9 @@
   org.postgresql/postgresql         {:mvn/version "42.4.0"}      ; "classic" pg jdbc driver
   com.impossibl.pgjdbc-ng/pgjdbc-ng {:mvn/version "0.8.9"}  ; new generation driver
 
+  ;; Trino
+  io.trino/trino-jdbc {:mvn/version "474"}
+
   ;; xtdb
   com.xtdb/xtdb-core    {:mvn/version "1.24.1"}
   com.xtdb/xtdb-rocksdb {:mvn/version "1.24.1"}

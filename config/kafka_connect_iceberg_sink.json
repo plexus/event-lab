@@ -1,23 +1,26 @@
 {
-    "name": "events-sink",
+    "name": "iceberg-events-sink",
     "config": {
         "connector.class": "org.apache.iceberg.connect.IcebergSinkConnector",
         "iceberg.catalog.type": "rest",
         "iceberg.catalog.uri": "http://localhost:19120/iceberg",
+        "iceberg.catalog.ref": "main",
+
+        "iceberg.catalog.io-impl": "org.apache.iceberg.aws.s3.S3FileIO",
+        "iceberg.catalog.warehouse": "s3://warehouse",
         "iceberg.catalog.s3.endpoint": "http://127.0.0.1:9000",
         "iceberg.catalog.s3.path-style-access": "true",
         "iceberg.catalog.s3.access-key-id": "usr",
         "iceberg.catalog.s3.secret-access-key": "password",
-        "iceberg.catalog.io-impl": "org.apache.iceberg.aws.s3.S3FileIO",
-        "iceberg.catalog.ref": "main",
-        "iceberg.catalog.warehouse": "s3://warehouse",
-        "iceberg.control.commitIntervalMs": "60000",
+        "aws.region": "us-east-1",
+
+        "topics": "events",
         "iceberg.tables.auto-create-enabled": "true",
         "iceberg.tables.dynamic-enabled": "true",
         "iceberg.tables.route-field": "table",
+
+        "iceberg.control.commitIntervalMs": "60000",
         "tasks.max": "2",
-        "topics": "events",
-        "aws.region": "us-east-1",
         "key.converter": "org.apache.kafka.connect.storage.StringConverter",
         "value.converter": "org.apache.kafka.connect.json.JsonConverter",
         "value.converter.schemas.enable": "false"

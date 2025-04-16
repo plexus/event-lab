@@ -89,6 +89,24 @@
    "key.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"
    "value.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"})
 
+(def props {
+            "bootstrap.servers" "cojrkvfb4g10p5c9aitg.any.eu-central-1.mpx.prd.cloud.redpanda.com:9092"
+            "security.protocol" "SASL_SSL"
+            "sasl.mechanism" "SCRAM-SHA-512"
+            "sasl.jaas.config" (str "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" username "\" password=\"" password "\";")
+
+            "group.id" "arne-test"
+            "default.topic" "prod.events.user-actions"
+            "max.poll.records" "10"
+            "enable.auto.commit" "true"
+            "auto.commit.interval.ms" "1000"
+
+            "key.serializer" "org.apache.kafka.common.serialization.StringSerializer"
+            "value.serializer" "org.apache.kafka.common.serialization.StringSerializer"
+            "key.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"
+            "value.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"
+            })
+
 (def consumer (KafkaConsumer. props))
 (.subscribe consumer ["magic-topic"])
 
@@ -108,18 +126,61 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def producer (KafkaProducer. props))
 
 (dotimes [i 100]
   (.send producer (ProducerRecord. "events" (str (random-uuid)) (str "{\"bar\": " i "}") #_(str i))))
+(def producer (KafkaProducer. props))
 
-(.send producer (ProducerRecord. "events" (str (random-uuid))
-                                 (charred/write-json-str
-                                  {:table "db_name.table_name"
-                                   :id (rand-int 1000)
-                                   :name "hello"
-                                   :created_at (java.time.Instant/now)})))
+(dotimes [i 100]
+  @(.send producer (ProducerRecord. "prod.events.user-actions"
+                                    (str (random-uuid))
+                                    (charred/write-json-str
+                                     {:type "arne_test"
+                                      :id (str "msg-" i)}))))
 
-(.send producer (ProducerRecord. "magic-topic" (str (random-uuid)) "stop"))
+@(.send producer (ProducerRecord. "prod.events.user-actions"
+                                  (str (random-uuid))
+                                  (charred/write-json-str
+                                   {:ts (System/nanoTime)
+                                    :type "arne_test"}))
+        )
 
 ;; (.close producer)
+
+(ns net.arnebrasseur.event-lab.kafka
+  (:require
+   [charred.api :as charred]
+   [clojure.core.protocols :as clojure-proto]
+   [clojure.datafy :refer [datafy]])
+  (:import
+   (java.time Duration)
+   (org.apache.kafka.clients.consumer ConsumerRecord KafkaConsumer)
+   (org.apache.kafka.clients.producer KafkaProducer ProducerRecord)))
+
+(def password "...")
+
+(def props
+  {"bootstrap.servers" "cojrkvfb4g10p5c9aitg.any.eu-central-1.mpx.prd.cloud.redpanda.com:9092"
+   "security.protocol" "SASL_SSL"
+   "sasl.mechanism" "SCRAM-SHA-512"
+   "sasl.jaas.config" (str "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" "gcloud-ingestor" "\" password=\""  password "\";")
+
+   "group.id" "arne-test"
+   "default.topic" "prod.events.user-actions"
+   "max.poll.records" "10"
+   "enable.auto.commit" "true"
+   "auto.commit.interval.ms" "1000"
+
+   "key.serializer" "org.apache.kafka.common.serialization.StringSerializer"
+   "value.serializer" "org.apache.kafka.common.serialization.StringSerializer"
+   "key.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"
+   "value.deserializer" "org.apache.kafka.common.serialization.StringDeserializer"})
+
+(def producer (KafkaProducer. props))
+
+(dotimes [i 100]
+  @(.send producer (ProducerRecord. "prod.events.user-actions"
+                                    (str (random-uuid))
+                                    (charred/write-json-str
+                                     {:type "arne_test"
+                                      :id (str "msg-" i)}))))
